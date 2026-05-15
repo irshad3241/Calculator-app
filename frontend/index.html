@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CalcStack | CI/CD Demo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow:wght@300;400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0a0e17;
+      --surface: #111827;
+      --surface2: #1a2235;
+      --border: #1e3a5f;
+      --accent: #00d4ff;
+      --accent2: #ff6b35;
+      --green: #00ff88;
+      --text: #e2e8f0;
+      --muted: #64748b;
+      --mono: 'Share Tech Mono', monospace;
+      --sans: 'Barlow', sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem 1rem;
+      background-image:
+        radial-gradient(circle at 20% 20%, rgba(0,212,255,0.04) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(255,107,53,0.04) 0%, transparent 50%);
+    }
+
+    /* Header */
+    header {
+      width: 100%;
+      max-width: 900px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 2rem;
+    }
+    .logo { display: flex; align-items: center; gap: 0.75rem; }
+    .logo-icon {
+      width: 36px; height: 36px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem;
+    }
+    .logo h1 { font-size: 1.3rem; font-weight: 700; letter-spacing: 0.05em; }
+    .logo span { color: var(--accent); }
+    .badges { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    .badge {
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      padding: 3px 8px;
+      border-radius: 4px;
+      border: 1px solid;
+      letter-spacing: 0.05em;
+    }
+    .badge-blue { border-color: var(--accent); color: var(--accent); }
+    .badge-orange { border-color: var(--accent2); color: var(--accent2); }
+    .badge-green { border-color: var(--green); color: var(--green); }
+
+    /* Main grid */
+    .main { width: 100%; max-width: 900px; display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+    @media (max-width: 640px) { .main { grid-template-columns: 1fr; } }
+
+    /* Card */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .card-header {
+      padding: 0.8rem 1.2rem;
+      background: var(--surface2);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 0.5rem;
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      color: var(--muted);
+      letter-spacing: 0.08em;
+    }
+    .card-header .dot { width: 8px; height: 8px; border-radius: 50%; }
+    .dot-red { background: #ff5f57; }
+    .dot-yellow { background: #febc2e; }
+    .dot-green { background: #28c840; }
+
+    /* Calculator */
+    .calc-body { padding: 1.2rem; }
+
+    .display {
+      background: #070b12;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      min-height: 80px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      align-items: flex-end;
+    }
+    .display-expr {
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      color: var(--muted);
+      min-height: 1.2em;
+      word-break: break-all;
+    }
+    .display-result {
+      font-family: var(--mono);
+      font-size: 2rem;
+      color: var(--accent);
+      letter-spacing: -0.02em;
+      word-break: break-all;
+    }
+
+    .keypad { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; }
+    .key {
+      padding: 0.75rem 0.5rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface2);
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      text-align: center;
+      user-select: none;
+    }
+    .key:hover { background: #223049; border-color: var(--accent); color: var(--accent); transform: translateY(-1px); }
+    .key:active { transform: translateY(0); }
+    .key-op { color: var(--accent); border-color: rgba(0,212,255,0.3); }
+    .key-eq {
+      background: linear-gradient(135deg, var(--accent), #0099cc);
+      border-color: transparent;
+      color: #000;
+      font-weight: 700;
+      grid-column: span 2;
+    }
+    .key-eq:hover { opacity: 0.9; transform: translateY(-1px); }
+    .key-clear { color: var(--accent2); border-color: rgba(255,107,53,0.3); }
+    .key-del { color: var(--muted); }
+
+    .calc-action {
+      margin-top: 1rem;
+      display: flex; gap: 0.5rem;
+    }
+    .btn {
+      flex: 1;
+      padding: 0.6rem;
+      border-radius: 6px;
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--muted);
+      transition: all 0.15s;
+      letter-spacing: 0.05em;
+    }
+    .btn:hover { border-color: var(--accent2); color: var(--accent2); }
+    .btn-send {
+      background: var(--accent2);
+      border-color: var(--accent2);
+      color: #fff;
+      font-weight: 600;
+    }
+    .btn-send:hover { opacity: 0.85; }
+
+    /* History panel */
+    .history-body { padding: 1.2rem; }
+    .history-list {
+      display: flex; flex-direction: column; gap: 0.5rem;
+      max-height: 380px; overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: var(--border) transparent;
+    }
+    .history-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.6rem 0.8rem;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      cursor: pointer;
+      transition: border-color 0.15s;
+      gap: 0.5rem;
+    }
+    .history-item:hover { border-color: var(--accent); }
+    .hist-expr { font-family: var(--mono); font-size: 0.8rem; color: var(--muted); }
+    .hist-result { font-family: var(--mono); font-size: 0.95rem; color: var(--accent); font-weight: 600; }
+    .hist-time { font-size: 0.65rem; color: var(--muted); white-space: nowrap; }
+    .history-empty {
+      text-align: center;
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      padding: 2rem;
+      border: 1px dashed var(--border);
+      border-radius: 8px;
+    }
+
+    /* Status bar */
+    .status-bar {
+      width: 100%; max-width: 900px;
+      margin-top: 1.5rem;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+    }
+    .status-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.8rem 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .status-icon { font-size: 1.3rem; }
+    .status-label { font-size: 0.7rem; color: var(--muted); letter-spacing: 0.08em; font-family: var(--mono); }
+    .status-value { font-size: 0.85rem; font-weight: 600; }
+    .status-ok { color: var(--green); }
+    .status-warn { color: var(--accent2); }
+
+    /* Toast */
+    .toast {
+      position: fixed; top: 1.5rem; right: 1.5rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.75rem 1.2rem;
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      color: var(--text);
+      transform: translateX(120%);
+      transition: transform 0.3s ease;
+      z-index: 999;
+      max-width: 280px;
+    }
+    .toast.show { transform: translateX(0); }
+    .toast.error { border-color: var(--accent2); color: var(--accent2); }
+    .toast.success { border-color: var(--green); color: var(--green); }
+
+    .history-controls {
+      display: flex; gap: 0.5rem;
+      margin-bottom: 0.75rem;
+    }
+    .btn-sm {
+      padding: 0.4rem 0.75rem;
+      font-size: 0.7rem;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">∑</div>
+    <h1>Calc<span>Stack</span></h1>
+  </div>
+  <div class="badges">
+    <span class="badge badge-blue">DOCKER</span>
+    <span class="badge badge-orange">JENKINS</span>
+    <span class="badge badge-green">AWS EC2</span>
+  </div>
+</header>
+
+<div class="main">
+  <!-- Calculator -->
+  <div class="card">
+    <div class="card-header">
+      <span class="dot dot-red"></span>
+      <span class="dot dot-yellow"></span>
+      <span class="dot dot-green"></span>
+      &nbsp;calculator.js
+    </div>
+    <div class="calc-body">
+      <div class="display">
+        <div class="display-expr" id="expr">—</div>
+        <div class="display-result" id="result">0</div>
+      </div>
+      <div class="keypad">
+        <button class="key key-clear" onclick="clearAll()">C</button>
+        <button class="key key-op" onclick="appendKey('(')">(</button>
+        <button class="key key-op" onclick="appendKey(')')">)</button>
+        <button class="key key-op" onclick="appendKey('/')">÷</button>
+
+        <button class="key" onclick="appendKey('7')">7</button>
+        <button class="key" onclick="appendKey('8')">8</button>
+        <button class="key" onclick="appendKey('9')">9</button>
+        <button class="key key-op" onclick="appendKey('*')">×</button>
+
+        <button class="key" onclick="appendKey('4')">4</button>
+        <button class="key" onclick="appendKey('5')">5</button>
+        <button class="key" onclick="appendKey('6')">6</button>
+        <button class="key key-op" onclick="appendKey('-')">−</button>
+
+        <button class="key" onclick="appendKey('1')">1</button>
+        <button class="key" onclick="appendKey('2')">2</button>
+        <button class="key" onclick="appendKey('3')">3</button>
+        <button class="key key-op" onclick="appendKey('+')">+</button>
+
+        <button class="key" onclick="appendKey('0')">0</button>
+        <button class="key" onclick="appendKey('.')">.</button>
+        <button class="key key-del" onclick="deleteLast()">⌫</button>
+        <button class="key key-eq" onclick="calculate()">=</button>
+      </div>
+      <div class="calc-action">
+        <button class="btn" onclick="clearAll()">RESET</button>
+        <button class="btn btn-send" onclick="sendToAPI()">→ API</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- History -->
+  <div class="card">
+    <div class="card-header">
+      <span class="dot dot-red"></span>
+      <span class="dot dot-yellow"></span>
+      <span class="dot dot-green"></span>
+      &nbsp;history.db
+    </div>
+    <div class="history-body">
+      <div class="history-controls">
+        <button class="btn btn-sm" onclick="loadHistory()">↻ REFRESH</button>
+        <button class="btn btn-sm" onclick="clearHistory()">✕ CLEAR</button>
+      </div>
+      <div class="history-list" id="historyList">
+        <div class="history-empty">No calculations yet.<br/>Perform a calculation to see history.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Status Bar -->
+<div class="status-bar">
+  <div class="status-card">
+    <div class="status-icon">🖥</div>
+    <div>
+      <div class="status-label">FRONTEND</div>
+      <div class="status-value status-ok">NGINX · PORT 80</div>
+    </div>
+  </div>
+  <div class="status-card">
+    <div class="status-icon">⚙️</div>
+    <div>
+      <div class="status-label">BACKEND API</div>
+      <div class="status-value" id="apiStatus">CHECKING...</div>
+    </div>
+  </div>
+  <div class="status-card">
+    <div class="status-icon">🗄</div>
+    <div>
+      <div class="status-label">DATABASE</div>
+      <div class="status-value" id="dbStatus">CHECKING...</div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const API = window.BACKEND_URL || 'http://localhost:3001';
+  let currentExpr = '';
+  let lastResult = null;
+
+  function appendKey(val) {
+    if (lastResult !== null) { currentExpr = String(lastResult); lastResult = null; }
+    currentExpr += val;
+    document.getElementById('expr').textContent = currentExpr || '—';
+  }
+
+  function clearAll() {
+    currentExpr = '';
+    lastResult = null;
+    document.getElementById('expr').textContent = '—';
+    document.getElementById('result').textContent = '0';
+  }
+
+  function deleteLast() {
+    if (lastResult !== null) { clearAll(); return; }
+    currentExpr = currentExpr.slice(0, -1);
+    document.getElementById('expr').textContent = currentExpr || '—';
+  }
+
+  function calculate() {
+    if (!currentExpr) return;
+    try {
+      const result = Function('"use strict"; return (' + currentExpr + ')')();
+      if (!isFinite(result)) { showToast('Math error', 'error'); return; }
+      document.getElementById('result').textContent = +result.toFixed(10);
+      lastResult = result;
+    } catch {
+      showToast('Invalid expression', 'error');
+    }
+  }
+
+  async function sendToAPI() {
+    if (!currentExpr) return showToast('Enter an expression first', 'error');
+    try {
+      const res = await fetch(`${API}/api/calculate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ expression: currentExpr })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      document.getElementById('result').textContent = data.result;
+      lastResult = data.result;
+      showToast('Saved to database ✓', 'success');
+      loadHistory();
+    } catch (e) {
+      showToast(e.message || 'API error', 'error');
+    }
+  }
+
+  async function loadHistory() {
+    try {
+      const res = await fetch(`${API}/api/history?limit=20`);
+      const data = await res.json();
+      const list = document.getElementById('historyList');
+      if (!data.length) {
+        list.innerHTML = '<div class="history-empty">No calculations yet.<br/>Perform a calculation to see history.</div>';
+        return;
+      }
+      list.innerHTML = data.map(item => `
+        <div class="history-item" onclick="reuseCalc('${item.expression}', ${item.result})">
+          <div>
+            <div class="hist-expr">${item.expression}</div>
+            <div class="hist-time">${new Date(item.created_at).toLocaleTimeString()}</div>
+          </div>
+          <div class="hist-result">${item.result}</div>
+        </div>
+      `).join('');
+    } catch { /* API not available */ }
+  }
+
+  async function clearHistory() {
+    try {
+      await fetch(`${API}/api/history`, { method: 'DELETE' });
+      showToast('History cleared', 'success');
+      loadHistory();
+    } catch { showToast('API not available', 'error'); }
+  }
+
+  function reuseCalc(expr, result) {
+    currentExpr = expr;
+    lastResult = result;
+    document.getElementById('expr').textContent = expr;
+    document.getElementById('result').textContent = result;
+  }
+
+  async function checkHealth() {
+    try {
+      const res = await fetch(`${API}/health`);
+      const data = await res.json();
+      document.getElementById('apiStatus').textContent = 'ONLINE · PORT 3001';
+      document.getElementById('apiStatus').className = 'status-value status-ok';
+      document.getElementById('dbStatus').textContent = data.db === 'connected' ? 'POSTGRES · ONLINE' : 'OFFLINE';
+      document.getElementById('dbStatus').className = `status-value ${data.db === 'connected' ? 'status-ok' : 'status-warn'}`;
+    } catch {
+      document.getElementById('apiStatus').textContent = 'OFFLINE';
+      document.getElementById('apiStatus').className = 'status-value status-warn';
+      document.getElementById('dbStatus').textContent = 'UNKNOWN';
+      document.getElementById('dbStatus').className = 'status-value status-warn';
+    }
+  }
+
+  function showToast(msg, type = '') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = `toast ${type} show`;
+    setTimeout(() => t.className = 'toast', 2500);
+  }
+
+  // Keyboard support
+  document.addEventListener('keydown', e => {
+    if ('0123456789'.includes(e.key)) appendKey(e.key);
+    else if (['+','-','*','/','(',')','.'].includes(e.key)) appendKey(e.key);
+    else if (e.key === 'Enter' || e.key === '=') calculate();
+    else if (e.key === 'Backspace') deleteLast();
+    else if (e.key === 'Escape') clearAll();
+  });
+
+  checkHealth();
+  loadHistory();
+  setInterval(checkHealth, 30000);
+</script>
+</body>
+</html>
